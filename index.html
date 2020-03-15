@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <title>Mini React Micro-Frontend</title>
+
+    <script
+      crossorigin
+      src="https://unpkg.com/react@16/umd/react.production.min.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"
+    ></script>
+
+    <!-- Todo: host these apps in 2 different buckets and load dynamically in the handlers -->
+    <script src="app.js"></script>
+    <script src="app1.js"></script>
+    <script src="app2.js"></script>
+
+    <script src="Sandbox.js"></script>
+
+    <script>
+      function loadApp() {
+        ReactDOM.render(
+          React.createElement(App, { name: "app" }),
+          document.getElementById("layout_slot_0")
+        );
+      }
+    </script>
+  </head>
+  <body>
+    <button onclick="loadApp()">Load App</button>
+
+    <div id="layout_slot_0"></div>
+  </body>
+</html>
