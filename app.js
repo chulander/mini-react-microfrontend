@@ -1,10 +1,11 @@
 function App(props) {
   const moduleData = React.useRef({});
-  const broadcast = React.useCallback(
-    function broadcast(id, message = {}) {
+  const appRef = React.useRef({});
+  const notifyOthers = React.useCallback(
+    function notifyOthers(id, message = {}) {
       const { detail: { _id, payload = {} } = {}, type } = message;
       const { target } = payload;
-      console.log(`App.js - broadcast: ${type} for ${_id}`, payload);
+      console.log(`App.js - notifyOthers: ${type} for ${_id}`, payload);
 
       for (const moduleId in moduleData.current) {
         console.log(`_id ${_id} and moduleId ${moduleId}`);
@@ -13,7 +14,7 @@ function App(props) {
 
           if (module) {
             console.log(
-              `App.js - broadcast: ${type} for ${_id} moduleId is ${moduleId}`
+              `App.js - notifyOthers: ${type} for ${_id} moduleId is ${moduleId}`
             );
 
             if (type === "destroy" && moduleId === target) {
@@ -30,7 +31,7 @@ function App(props) {
             }
           } else {
             console.error(
-              `App.js - broadcast: ${type} module missting - ${moduleId}`,
+              `App.js - notifyOthers: ${type} module missting - ${moduleId}`,
               payload
             );
           }
@@ -52,41 +53,26 @@ function App(props) {
           module.instance.destroy(target);
         }
       }
-      broadcast(_id, message);
+      notifyOthers(_id, message);
     },
-    [moduleData, broadcast]
+    [moduleData, notifyOthers]
   );
-  const readyHandler = React.useCallback(
-    function readyHandler(message = {}) {
-      const { detail: { _id, payload = {} } = {}, type } = message;
-      console.log(`App.js - readyHandler: ${type} for ${_id}`, payload);
-      const module = moduleData.current[_id];
-      if (module) {
-        module.sandbox.ref.current.addEventListener("destroy", genericHandler);
-        module.sandbox.ref.current.addEventListener("ready", genericHandler);
-        module.sandbox.ref.current.addEventListener("override", genericHandler);
-        module.sandbox.ref.current.addEventListener("notify", genericHandler);
-        module.sandbox.ref.current.addEventListener("report", genericHandler);
-        // }
-      } else {
-        console.error(
-          `App.js - readyHandler: ${type} MISSING - ${_id}`,
-          payload
-        );
-      }
-      broadcast(_id, message);
-      // notifyAll(detail.id, message);
+  React.useEffect(
+    function compoonentDidMount() {
+      const _events = ["destroy", "ready", "override", "notify", "report"];
+      console.log("Main App mounting");
+      _events.forEach(evt => {
+        appRef.current.addEventListener(evt, genericHandler);
+      });
+      return function componentWillUnmount() {
+        console.log("Main App unmount");
+        _events.forEach(evt => {
+          appRef.current.removeEventListener(evt, genericHandler);
+        });
+      };
     },
-    [moduleData, broadcast, genericHandler]
+    [appRef]
   );
-  React.useEffect(function compoonentDidMount() {
-    console.log("Main App mounted");
-    window.addEventListener("ready", readyHandler);
-    return function componentWillUnmount() {
-      console.log("Main App unmounted");
-      window.removeEventListener("ready", readyHandler);
-    };
-  }, []);
 
   const register = React.useCallback(
     function register(moduleId, creator) {
@@ -112,7 +98,7 @@ function App(props) {
       console.log(`App.js - start: ${moduleId}`);
       const module = moduleData.current[moduleId];
       if (module && module.instance === null) {
-        const sandbox = new Sandbox({ id: moduleId });
+        const sandbox = new Sandbox({ id: moduleId, _parentRef: appRef });
         module.instance = module.creator(sandbox);
         module.instance.init(sandbox.ref);
         module.sandbox = sandbox;
@@ -125,7 +111,7 @@ function App(props) {
         );
       }
     },
-    [moduleData]
+    [moduleData, appRef]
   );
 
   const stop = React.useCallback(
@@ -274,7 +260,8 @@ function App(props) {
       return React.createElement(
         "div",
         {
-          style: { height: "4rem", width: "10rem" }
+          style: { height: "4rem", width: "10rem" },
+          ref: appRef
         },
         button1,
         button2,
@@ -282,7 +269,7 @@ function App(props) {
         slot2
       );
     },
-    [button1, button2, slot1, slot2]
+    [button1, button2, slot1, slot2, appRef]
   );
   return Element;
 }

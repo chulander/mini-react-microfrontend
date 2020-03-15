@@ -32,7 +32,7 @@
 //     }
 // }
 
-const App2 = React.forwardRef(function App2({ id, name, sandbox } = {}, ref) {
+const App2 = function App2({ id, name, sandbox } = {}) {
   const savedHandler = React.useRef({});
   const [sibling, updateSibling] = React.useState();
   const [state, updateState] = React.useState({ id, name });
@@ -228,15 +228,15 @@ const App2 = React.forwardRef(function App2({ id, name, sandbox } = {}, ref) {
             flexDirection: "column"
           },
           id: state.id,
-          name: state.name,
-          ref
+          name: state.name
+          // ref
         },
         !sibling ? null : Button,
         Family,
         !sibling ? null : DestroyButton
       );
     },
-    [state, ref, Button, DestroyButton, sandbox, Family]
+    [state, Button, DestroyButton, sandbox, Family]
   );
   return Element;
-});
+};

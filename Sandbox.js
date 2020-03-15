@@ -3,7 +3,7 @@ class Sandbox {
     console.log(`Sandbox.js: ${props.id} constructor`);
     this.events = {};
     this.id = props.id;
-    this.ref = React.createRef(null);
+    this._parentRef = props._parentRef;
   }
   addListener(evt, handler) {
     if (typeof handler !== "function") {
@@ -51,33 +51,11 @@ class Sandbox {
   handle(message = {}) {
     const { detail: { _id, payload = {} } = {}, type } = message;
     console.log(`Sandbox.js: handle for ${this.id} `, payload);
-    // if (broadcast) {
-    //   let handler;
-    //   for (const fn in this.events) {
-    //     console.log("what is fn", fn);
-    //     if (fn === "broadcast") {
-    //       console.log("fn is broadcast");
-    //       handler = this.events[fn];
-    //       break;
-    //     }
-    //   }
-    //   // const handler = this.events["broadcast"];
-    //   console.log("what is handler", handler);
-    //   if (handler && typeof handler === "function") {
-    //     console.log(`Sandbox.js: ${this.id} handling broadcast`, payload);
-    //     handler({ type: "broadcast", _id, detail: { payload: message } });
-    //   } else {
-    //     console.error(
-    //       `Sandbox.js: handle for ${this.id} does not have a broadcast handler`
-    //     );
-    //   }
-    // } else {
     const handler = this.events[message.type];
     if (handler && typeof handler === "function") {
       console.log(`Sandbox.js: ${this.id} handling ${message.type}`, payload);
       handler(message);
     }
-    // }
   }
   destroy(message = {}) {
     const event = new CustomEvent("destroy", {
@@ -88,40 +66,28 @@ class Sandbox {
         _id: this.id
       }
     });
-    this.ref.current.dispatchEvent(event);
+    this._parentRef.current.dispatchEvent(event);
   }
   dispatch(eventType, payload = {}) {
     const detail = {
       payload,
       _id: this.id
     };
-    console.log(
-      `Sandbox.js: dispatching eventType ${eventType} from ${this.id}`,
-      detail
-    );
     const event = new CustomEvent(eventType, {
       bubbles: true,
       detail
     });
 
-    // this.ref.current.dispatchEvent(event);
-    if (eventType === "ready") {
+    if (this._parentRef.current) {
       console.log(
-        `Sandbox.js: dispatching ${this.id} window dispatching ${eventType}`
+        `Sandbox.js: dispatching ${this.id} custom event dispatching ${eventType}`,
+        event
       );
-      window.dispatchEvent(event);
+      this._parentRef.current.dispatchEvent(event);
     } else {
-      if (this.ref.current) {
-        console.log(
-          `Sandbox.js: dispatching ${this.id} custom event dispatching ${eventType}`
-        );
-        this.ref.current.dispatchEvent(event);
-      } else {
-        console.error(
-          `Sandbox.js: ${this.id} cannot custom event dispatch ${eventType}`
-        );
-        // window.dispatchEvent(event);
-      }
+      console.error(
+        `Sandbox.js: ${this.id} cannot custom event dispatch ${eventType}`
+      );
     }
   }
 }

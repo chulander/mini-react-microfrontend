@@ -22,7 +22,7 @@
 //         },'Greetings 1, ' + this.props.name + '!');
 //     }
 // }
-const App1 = React.forwardRef(function App1({ id, name, sandbox } = {}, ref) {
+const App1 = function App1({ id, name, sandbox } = {}) {
   const savedHandler = React.useRef({});
   const [sibling, updateSibling] = React.useState();
   const [state, updateState] = React.useState({
@@ -184,14 +184,13 @@ const App1 = React.forwardRef(function App1({ id, name, sandbox } = {}, ref) {
             flexDirection: "column"
           },
           id: state.id,
-          name: state.name,
-          ref
+          name: state.name
         },
         Button,
         Text
       );
     },
-    [handleClick, state, ref, Button, Text]
+    [handleClick, state, Button, Text]
   );
   return Element;
-});
+};
